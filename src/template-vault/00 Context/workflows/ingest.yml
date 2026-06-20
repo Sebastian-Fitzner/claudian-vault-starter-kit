@@ -1,0 +1,92 @@
+version: 1
+
+# Update the code graph, then ingest it into the project LLM wiki.
+# The `codegraph sync` runs as the step PRE-HOOK (deterministic, before the agent);
+# the agent then runs /llm-wiki to compile a code-graph snapshot into the wiki.
+#
+# Requires the ${REPO_ROOT} variable (the project's MAIN checkout, resolved from the
+# project note's `local` — never a worktree). Provide it with `--var REPO_ROOT=...`
+# (CLI) or a per-project variable (desktop).
+# Opt-in only: the project must have `code_graph: true` and a built
+# `${REPO_ROOT}/.codegraph/codegraph.db`; otherwise the pre-hook fails and stops the step.
+
+defaults:
+  cwd: .
+  timeoutMs: 1800000
+
+task:
+  statusField: workflowStatus
+
+completion:
+  strategy: taskTimeline
+  heading: "## Timeline"
+  stepColumn: "task state"
+  startedColumn: "started_at"
+  finishedColumn: "finished_at"
+  # no statusColumn — finished_at non-empty is the sole completion signal
+  requireTaskFileChanged: true
+  stateMapping:
+    ingesting: "ingesting code graph"
+
+agents:
+  codex:
+    command: codex
+    args:
+      - exec
+      - --json
+      - --dangerously-bypass-approvals-and-sandbox
+    stdin: "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      gpt-5.5-high:
+        args:
+          - --model
+          - gpt-5.5
+          - -c
+          - reasoning_effort=high
+
+  claude:
+    command: claude
+    args:
+      - --print
+      - --verbose
+      - --output-format
+      - stream-json
+      - --input-format
+      - text
+      - --dangerously-skip-permissions
+      - "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      opus-max:
+        args:
+          - --model
+          - opus
+          - --effort
+          - max
+
+steps:
+  - id: ingesting
+    # Supported runners: claude opus-max (default) OR codex gpt-5.5-high.
+    # To run on Codex instead, set `agent: codex` and `model: gpt-5.5-high`.
+    agent: claude
+    model: opus-max
+    skillPrompt: >-
+      Run the /llm-wiki skill with the intent "ingest code graph" for this
+      project. The codegraph index was just refreshed by this step's pre-hook
+      (codegraph sync), so treat it as current. Follow the skill's "Codegraph
+      Source (opt-in)" rules: confirm the project is opted in (code_graph: true
+      and a built .codegraph/codegraph.db), read the index READ-ONLY via the
+      codegraph MCP tools / CLI (status, files, explore, callers|callees|impact),
+      snapshot the facts into raw/code-graph/<date>-<area>.md, compile into
+      wiki/architecture/ (or the most relevant topic) articles, and update
+      wiki/index.md and wiki/log.md. Do NOT run codegraph init/index/sync
+      yourself — refreshing the index is the pre-hook's job only.
+    hooks:
+      # Update the graph before ingesting. Runs on the MAIN checkout via REPO_ROOT.
+      # Failure (e.g. no .codegraph index) stops the step before any ingest.
+      pre: 'codegraph sync "${REPO_ROOT}"'
+
+limits:
+  maxReviewFixCycles: 2
+  stopOnStepFailure: true

@@ -1,0 +1,90 @@
+version: 1
+
+defaults:
+  cwd: .
+  timeoutMs: 1800000
+
+task:
+  statusField: workflowStatus
+
+completion:
+  strategy: taskTimeline
+  heading: "## Timeline"
+  stepColumn: "task state"
+  startedColumn: "started_at"
+  finishedColumn: "finished_at"
+  # no statusColumn — finished_at non-empty is the sole completion signal
+  requireTaskFileChanged: true
+  stateMapping:
+    planning: "planning"
+    review-planning: "reviewing-plan"
+
+agents:
+  codex:
+    command: codex
+    args:
+      - exec
+      - --json
+      - --dangerously-bypass-approvals-and-sandbox
+    stdin: "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      gpt-5.5-high:
+        args:
+          - --model
+          - gpt-5.5
+          - -c
+          - reasoning_effort=high
+
+  claude:
+    command: claude
+    args:
+      - --print
+      - --verbose
+      - --output-format
+      - stream-json
+      - --input-format
+      - text
+      - --dangerously-skip-permissions
+      - "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      sonnet-high:
+        args:
+          - --model
+          - sonnet
+          - --effort
+          - high
+      sonnet-max:
+        args:
+          - --model
+          - sonnet
+          - --effort
+          - max
+      opus-high:
+        args:
+          - --model
+          - opus
+          - --effort
+          - high
+      opus-max:
+        args:
+          - --model
+          - opus
+          - --effort
+          - max
+
+steps:
+  - id: planning
+    agent: claude
+    model: opus-max
+    skill: /task-planning/SKILL.md
+
+  - id: review-planning
+    agent: codex
+    model: gpt-5.5-high
+    skill: /task-plan-review/SKILL.md
+
+limits:
+  maxReviewFixCycles: 2
+  stopOnStepFailure: true

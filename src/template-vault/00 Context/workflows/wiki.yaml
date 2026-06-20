@@ -1,0 +1,72 @@
+version: 1
+
+defaults:
+  cwd: .
+  timeoutMs: 1800000
+
+task:
+  statusField: workflowStatus
+
+completion:
+  strategy: taskTimeline
+  heading: "## Timeline"
+  stepColumn: "task state"
+  startedColumn: "started_at"
+  finishedColumn: "finished_at"
+  # no statusColumn — finished_at non-empty is the sole completion signal
+  requireTaskFileChanged: true
+  stateMapping:
+    researching: "deep research"
+    llm-wiki-building: "building llm-wiki"
+
+agents:
+  codex:
+    command: codex
+    args:
+      - exec
+      - --json
+      - --dangerously-bypass-approvals-and-sandbox
+    stdin: "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      gpt-5.5-high:
+        args:
+          - --model
+          - gpt-5.5
+          - -c
+          - reasoning_effort=high
+
+  claude:
+    command: claude
+    args:
+      - --print
+      - --verbose
+      - --output-format
+      - stream-json
+      - --input-format
+      - text
+      - --dangerously-skip-permissions
+      - "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      opus-max:
+        args:
+          - --model
+          - opus
+          - --effort
+          - max
+
+steps:
+  - id: researching
+    agent: claude
+    model: opus-max
+    skillPrompt: "Run the /deep-research skill to produce an evidence-backed, fully sourced research report for this task. Follow the skill's workflow and required final structure end to end."
+
+  - id: llm-wiki-building
+    agent: claude
+    model: opus-max
+    skillPrompt: "Run the /llm-wiki skill to transform the deep-research report from the previous step into a structured, interconnected, source-backed LLM wiki. Follow the skill's placement decision, structure, and completion checklist."
+
+limits:
+  maxReviewFixCycles: 2
+  stopOnStepFailure: true

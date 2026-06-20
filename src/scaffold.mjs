@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 /**
- * Claudian Vault Starter Kit — scaffolder.
+ * Vault Starter Kit — scaffolder.
  *
- * Personalizes the bundled `template-vault/` into a working Obsidian + Claudian vault.
+ * Personalizes the bundled `template-vault/` into an AI-assisted engineering vault.
  * Zero npm dependencies — Node 18+ built-ins only.
  *
  * Usage:
- *   node scaffold.mjs                 # interactive
- *   node scaffold.mjs --target ./my-vault
- *   node scaffold.mjs --defaults      # non-interactive, accept all defaults (for CI/testing)
- *   node scaffold.mjs --help
+ *   npx @veams/vault-starter-kit
+ *   npx @veams/vault-starter-kit --target ./my-vault
+ *   npx @veams/vault-starter-kit --defaults
+ *   npx @veams/vault-starter-kit --help
  */
 
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync, rmSync, existsSync } from 'node:fs';
-import { join, dirname, relative, basename } from 'node:path';
+import { join, dirname, relative, basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout, argv, exit } from 'node:process';
@@ -36,15 +36,15 @@ const hasFlag = (f) => args.includes(f);
 const getOpt = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : undefined; };
 
 if (hasFlag('--help') || hasFlag('-h')) {
-  log(`Claudian Vault Starter Kit scaffolder
+  log(`Vault Starter Kit scaffolder
 
-  node scaffold.mjs [options]
+  npx @veams/vault-starter-kit [options]
 
   Interactive by default. Any flag below pre-fills its answer and skips that prompt,
   so passing all of them (or --defaults) makes the run fully headless.
 
   --target DIR        Where to create the vault (default: ./my-claudian-vault)
-  --defaults          Accept every default answer (no prompts)
+  --defaults, --yes   Accept every default answer (no prompts)
 
   Identity:
   --name NAME         Your name
@@ -71,7 +71,7 @@ const NON_INTERACTIVE = hasFlag('--defaults') || hasFlag('--yes');
 // ---------- manifest ----------
 if (!existsSync(TEMPLATE_DIR)) {
   log(paint('red', `✗ template-vault/ not found next to scaffold.mjs (looked in ${TEMPLATE_DIR}).`));
-  log('  Run this from the unzipped kit folder.');
+  log('  The package looks incomplete. Reinstall or report a packaging issue.');
   exit(1);
 }
 const manifest = existsSync(MANIFEST_PATH)
@@ -117,12 +117,22 @@ async function toggle(name, question, defYes) {
 
 // ---------- banner ----------
 log('');
-log(paint('bold', '  Claudian Vault Starter Kit'));
-log(paint('dim', '  Personalize the vault skeleton. Press Enter to accept defaults.'));
+log(paint('bold', '  Vault Starter Kit'));
+log(paint('dim', '  Personalize the engineering vault skeleton. Press Enter to accept defaults.'));
 log('');
 
 // ---------- collect answers ----------
 const targetDir = await field('--target', 'Where should the vault be created?', './my-claudian-vault');
+const absTarget = resolve(process.cwd(), targetDir);
+if (existsSync(absTarget)) {
+  const targetStats = statSync(absTarget);
+  const targetIsEmptyDir = targetStats.isDirectory() && readdirSync(absTarget).length === 0;
+  if (!targetIsEmptyDir) {
+    if (rl) rl.close();
+    log(paint('red', `✗ Target ${targetDir} must be a new or empty directory.`));
+    exit(1);
+  }
+}
 
 const devName = await field('--name', 'Your name?', 'Your Name');
 const devRole = await field('--role', 'Your role?', 'Software Engineer');
@@ -204,12 +214,6 @@ for (const [name, enabled] of Object.entries(features)) {
   }
 }
 
-// ---------- target dir guard ----------
-const absTarget = join(process.cwd(), targetDir);
-if (existsSync(absTarget) && readdirSync(absTarget).length > 0) {
-  log(paint('red', `✗ Target ${targetDir} exists and is not empty. Choose an empty path.`));
-  exit(1);
-}
 mkdirSync(absTarget, { recursive: true });
 
 // ---------- walk + write ----------
@@ -289,10 +293,11 @@ if (gitDone) log(`    ${paint('bold', 'Git:')}       initialized + first commit`
 
 log('');
 log(paint('bold', '  Next steps:'));
-log('    1. Open the folder as a vault in Obsidian.');
-log('    2. Install plugins — see docs/plugins.md (Claudian + BRAT).');
+log(`    1. cd ${targetDir}`);
+log('    2. Open the folder in your editor or agent CLI.');
+log('    3. Read WALKTHROUGH.md and fill in 00 Context/About Me.md.');
 const mcpBits = [useAtlassian && 'Atlassian', useGithub && 'GitHub', useCodegraph && 'codegraph']
   .filter(Boolean).join(', ');
-if (mcpBits) log(`    3. Set up MCP servers (${mcpBits}) — see docs/mcp-setup.md.`);
-log('    4. Fill in 00 Context/About Me.md, then read WALKTHROUGH.md.');
+if (mcpBits) log(`    4. Optional MCP setup (${mcpBits}): see docs/mcp-setup.md.`);
+log(`    ${mcpBits ? '5' : '4'}. Optional Obsidian setup: see docs/plugins.md.`);
 log('');

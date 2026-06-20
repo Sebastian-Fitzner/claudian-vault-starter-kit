@@ -1,0 +1,137 @@
+version: 1
+
+defaults:
+  cwd: .
+  timeoutMs: 1800000
+
+task:
+  statusField: workflowStatus
+
+completion:
+  strategy: taskTimeline
+  heading: "## Timeline"
+  stepColumn: "task state"
+  startedColumn: "started_at"
+  finishedColumn: "finished_at"
+  # no statusColumn — finished_at non-empty is the sole completion signal
+  requireTaskFileChanged: true
+  stateMapping:
+    implementing: "implementing plan"
+    reviewing:
+      - "review initial implementation"
+      - "review fixes"
+    fixing: "implementing review findings"
+    finalizing: "finalizing"
+
+
+agents:
+  codex:
+    command: codex
+    args:
+      - exec
+      - --json
+      - --dangerously-bypass-approvals-and-sandbox
+    stdin: "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      gpt-5.5-high:
+        args:
+          - --model
+          - gpt-5.5
+          - -c
+          - reasoning_effort=high
+      gpt-5.4-medium:
+        args:
+          - --model
+          - gpt-5.4
+          - -c
+          - reasoning_effort=medium
+
+  qwen-coder:
+    command: qwen
+    args:
+      - --prompt-file
+      - "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      qwen-coder-plus:
+        args:
+          - --model
+          - qwen-coder-plus
+
+  claude:
+    command: claude
+    args:
+      - --print
+      - --verbose
+      - --output-format
+      - stream-json
+      - --input-format
+      - text
+      - --dangerously-skip-permissions
+      - "{{promptFile}}"
+    timeoutMs: 1800000
+    models:
+      sonnet-low:
+        args:
+          - --model
+          - sonnet
+          - --effort
+          - low
+      sonnet-medium:
+        args:
+          - --model
+          - sonnet
+          - --effort
+          - medium
+      sonnet-high:
+        args:
+          - --model
+          - sonnet
+          - --effort
+          - high
+      sonnet-max:
+        args:
+          - --model
+          - sonnet
+          - --effort
+          - max
+      opus-high:
+        args:
+          - --model
+          - opus
+          - --effort
+          - high
+      opus-max:
+        args:
+          - --model
+          - opus
+          - --effort
+          - max
+
+steps:
+  - id: implementing
+    agent: codex
+    model: gpt-5.5-high
+    skill: skills/task-implementation/SKILL.md
+
+  - id: reviewing
+    agent: claude
+    model: opus-max
+    skill: skills/task-review/SKILL.md
+
+  - id: fixing
+    agent: codex
+    model: gpt-5.4-medium
+    skill: skills/address-pr-findings/SKILL.md
+    cyclesWith: reviewing
+
+
+  - id: finalizing
+    agent: codex
+    model: gpt-5.4-medium
+    skill: skills/task-finalize/SKILL.md
+
+limits:
+  maxReviewFixCycles: 2
+  stopOnStepFailure: true

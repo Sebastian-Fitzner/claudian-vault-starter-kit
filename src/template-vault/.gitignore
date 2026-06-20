@@ -1,0 +1,17 @@
+# Claudian / agent session + run artifacts (machine-local, never commit)
+.claudian/sessions/
+.smart-env/
+.ai-workflow/runs/
+.ai-workflow/worktrees/
+.claude/worktrees/
+.codex/sessions/
+
+# Local repos cloned under projects (resolved via the `local` frontmatter property)
+**/repo/
+
+# codegraph indexes belong to the repo, never the vault
+**/.codegraph/
+
+# OS noise
+.DS_Store
+**/.DS_Store
