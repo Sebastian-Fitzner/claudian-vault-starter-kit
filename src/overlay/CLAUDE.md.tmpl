@@ -1,0 +1,181 @@
+# Vault Context
+
+This is {{DEV_NAME}}'s Second Brain — a personal knowledge and project management system.
+
+## Identity
+
+{{DEV_NAME}}, {{DEV_ROLE}}.
+{{DEV_STACK}}
+Currently focused on {{DOMAIN_FOCUS}}.
+
+See [[00 Context/About Me]] / @00 Context/About Me.md for the full profile.
+
+Use relevant personas from  [[00 Context/Personas]] / @00 Context/Personas.md when tasks require specialization.
+
+Use relevant specialists from [[00 Context/Specialists/Specialists]] / @00 Context/Specialists/Specialists.md when the task matches a known trigger.
+
+---
+
+## Vault Structure
+
+- `00 Context/` → Profile, ICP, Writing Style, Personas (**always reference for content & tone**) and Rules
+- `01 Inbox/` → Unsorted input
+- `02 Projects/` → Active projects (goal-driven)
+- `03 Wiki/` → Evergreen structured knowledge
+- `04 Resources/` → Reference material
+- `05 Daily Notes/` → Daily continuity
+- `06 Archive/` → Completed/inactive
+- `07 Attachments/` → Media
+- `08 Templates/` → Blueprints
+- `09 Raw Data/` → Unprocessed input
+- `10 LLM Wiki/` → Fallback/global LLM wiki when no project-specific LLM wiki applies
+
+---
+
+## Information Discovery
+
+Before answering any question about a project, topic, feature, ticket, or codebase:
+
+- **Enumerate projects first.** List `02 Projects/` to see which project owns the topic. Do not assume the relevant project is one you already opened this session.
+- **Consult the project LLM wiki before answering.** If `02 Projects/<Project>/llm-wiki/wiki/index.md` exists, read it (and the matching article) as the **primary, canonical source** — these are curated answers. For "what do I know about X" questions, prefer the `llm-wiki` skill. If no project-specific wiki applies, fall back to `10 LLM Wiki/`.
+- **Never treat a truncated search as complete coverage.** Do not pipe discovery searches through `head`/`tail` when establishing what exists. Count results first (`| wc -l`) or scope the query; only truncate once you know the full size.
+- **Search rare terms alone.** Do not bundle a rare term (e.g. a feature name) with a common one (e.g. a platform name) in one `grep` — the common term floods and hides the rare matches.
+- **State assumptions explicitly** when wiki/notes do not cover something, and flag them for correction rather than guessing silently.
+
+## Core Rules
+
+- Use [Wikilinks](app://obsidian.md/Wikilinks) for connections
+- Default unknown notes → `01 Inbox/`
+- Keep notes **atomic**
+- Projects = goal-oriented, Wiki = reusable knowledge
+- Development → English, Business Strategy → {{BUSINESS_LANGUAGE}}
+- Do not delete or overwrite without asking
+- Explain file operations briefly
+
+### Memory Handling
+
+When the user says `remember`, `save`, or similar, classify the memory target before writing:
+- writing preference → [[00 Context/Writing Style|Writing Style]]
+- project-specific memory → the relevant project note
+- technical knowledge → [[04 Resources]]
+- vault rule or operating rule → [[CLAUDE]]
+
+When unsure where something belongs, ask one short clarifying question.
+
+When the user says `compress`:
+- create a session log in the project's `session-logs` folder
+- file pattern: `log-{date}-{time}.txt`
+- include the key session decisions and current state
+
+When the user says `resume`:
+- review the last 3 session logs in the project before continuing
+
+When the user says they have a new skill:
+- treat `skills/` as the source of truth
+- sync that skill into `.codex/skills/`, `.claude/skills/`, and `.agents/skills/`
+- do the sync automatically unless the user explicitly says not to
+- **never use `--delete` or remove any files from `.claude/skills/` or `.agents/skills/` during sync** — some skills are installed by the Obsidian plugin and must not be touched; only add or update, never delete
+
+---
+## Execution Principles
+
+- do not assume when unclear
+- prefer simple over flexible
+- no speculative features
+- match existing style when editing
+- every change must map to the task
+- never deviate from an approved plan without flagging it first
+- persona best practices are the leading system; if you want to deviate, ask first
+- persona weighting: persona in project located at `reference/Best Practices` or `reference/best-practices` are prior to [[00 Context/Personas]]
+- during review, treat every active persona rule and Coding Guideline as a checklist against the changed code — proactively flag violations; waiting for the user to surface a rule violation is a review failure
+
+## Workflow Routing
+
+Use the relevant workflow skill when the user intent matches:
+- create a project, new project → [[skills/project-creation/SKILL|project-creation]]
+- create a task, add task, new task → [[skills/task-creation/SKILL|task-creation]]
+- plan a task, start working on a task, implementation plan → [[skills/task-planning/SKILL|task-planning]]
+- review task plan, validate plan, stress-test plan → [[skills/task-plan-review/SKILL|task-plan-review]]
+- implement an approved task, execute plan → [[skills/task-implementation/SKILL|task-implementation]]
+- address PR review findings, fix review findings, implement review feedback → [[skills/address-pr-findings/SKILL|address-pr-findings]]
+- review task work, complete a task, close a task → [[skills/task-review/SKILL|task-review]]
+- finalize a task, commit and push, open a PR, ship it → [[skills/task-finalize/SKILL|task-finalize]]
+- investigate specialized technical problems, like css/browser bugs → [[skills/specialist-investigation/SKILL|specialist-investigation]]
+<!-- feature:figma -->
+- create a figma concept, build figma components, sync figma tokens, map code connect, pull figma context into code → [[skills/figma-bridge/SKILL|figma-bridge]]
+<!-- /feature:figma -->
+- do deep research, research a topic, create a comprehensive report, evidence-backed briefing, literature review, market analysis, technical analysis → [[skills/deep-research/SKILL|deep-research]]
+- build a wiki from research, create an obsidian knowledge base, turn research into notes, create wiki pages from a report → [[skills/obsidian-wiki/SKILL|obsidian-wiki]]
+- maintain or query an LLM wiki, ingest into an LLM wiki, lint an LLM wiki, Karpathy wiki, add to llm wiki → [[skills/llm-wiki/SKILL|llm-wiki]]
+
+Distinguish wiki skills clearly:
+- `llm-wiki` is a Karpathy-style compounding knowledge base with `raw/` and `wiki/`. When it starts, detect the project first and use `02 Projects/<Project>/llm-wiki/`. In project scope, consider the project note, `tasks/`, root-level `task-*.md`, `pr-reviews/`, `reference/`, `concepts/`, and existing project `wiki/` as knowledge sources. If the project cannot be resolved, ask where to save/read it and offer `10 LLM Wiki/` as the fallback/global location.
+- `obsidian-wiki` creates a source-backed Obsidian knowledge system from research or documentation, with frontmatter, wikilinks, MOCs, review strategy, and graph-oriented structure.
+
+Do not inline the full workflow here. Follow the linked skill instructions.
+
+<!-- feature:atlassian -->
+---
+
+## Atlassian / Jira
+
+Use Atlassian MCP for Jira and Confluence requests.
+
+Fetch Jira issue keys through the Atlassian MCP tools first, typically `mcp__atlassian__getJiraIssue` when the namespace is exposed.
+
+If the current session does not expose `mcp__atlassian__...` tools, do not conclude that Atlassian MCP is unavailable. Use this recovery path without asking the user to debug it:
+
+1. Check `codex mcp list` and verify `atlassian` is enabled.
+2. If auth is missing or the endpoint returns `invalid_token`, run `codex mcp login atlassian` and open the authorization URL for the user.
+3. If auth exists but the current session still lacks the Atlassian tool namespace, run a fresh non-interactive Codex session with a narrow prompt:
+
+   ```sh
+   codex exec --cd {path-to-vault} 'Use the Atlassian MCP tools only. Fetch the requested Jira issue and output the requested fields. Do not edit files.'
+   ```
+
+   If this fails with an app-server or sandbox permission error, rerun the same command with the required approval/escalation.
+
+Do not use generic MCP resource listing as proof that Jira is unavailable. Atlassian exposes Jira through tools, not through the generic resource list in this setup.
+
+When connected to atlassian-rovo-mcp:
+- **MUST** use cloudId = "{{ATLASSIAN_CLOUD_URL}}" (do NOT call getAccessibleAtlassianResources)
+- **MUST** use `maxResults: 10` or `limit: 10` for ALL Jira JQL and Confluence CQL search operations.
+
+<!-- /feature:atlassian -->
+---
+
+## Engineering
+
+See:
+- [[Coding Guidelines]] / @00 Context/engineering/Coding Guidelines.md
+- For branch-based repo work, prefer `git worktree` when the task sets `worktree: true` and the project has a local repository path
+- Always resolve the repository path from the project note's `local` property — never search the filesystem for the repo. The `local` path is relative to the project note's location. If `local` is missing or the resolved path does not exist, stop and ask the user to update the project note.
+
+### Git
+
+- Always use `--author="{{DEV_GIT_AUTHOR}}"` when creating git commits
+- Never add "Generated with Claude Code" or any AI attribution footer to PR descriptions
+
+---
+
+## Session Behavior
+
+See:
+- [[Session]] / @00 Context/routines/Session.md
+
+<!-- feature:codegraph -->
+## codegraph
+
+codegraph integration is **strictly opt-in per project**. A project participates only when **both** conditions hold:
+
+1. the project note's YAML frontmatter has `code_graph: true`, AND
+2. `<repo-path>/.codegraph/codegraph.db` exists in the repository resolved from the project's `local` property (the codegraph index has been built).
+
+When either condition is false, treat the project as if codegraph did not exist: do not read the index, do not run `codegraph` commands, do not suggest running them. No skill, workflow, or post-edit hook may invoke codegraph on a non-opted-in project.
+
+When both conditions hold (project opted in):
+- Prefer the codegraph MCP tools (`codegraph_explore` first, then `codegraph_search`, `codegraph_callers`, `codegraph_callees`, `codegraph_impact`, `codegraph_files`, `codegraph_status`) or the CLI (`codegraph query`, `codegraph callers|callees|impact`, `codegraph status`) before broad grep/glob searches over that repo.
+- For cross-module "how does X relate to Y" questions, prefer `codegraph_explore` naming the symbols that span the flow — or `codegraph callers|callees|impact "<symbol>"` — over grep.
+- **Never run `codegraph init`, `codegraph index`, `codegraph sync`, or any index-mutating codegraph command automatically.** Refreshing the index is the sole responsibility of [[skills/task-planning/SKILL|task-planning]] step 10 (`codegraph sync`), which runs only against the **main checkout** (the path from `local`). Do not refresh the index from `task-implementation`, `task-finalize`, `task-review`, `address-pr-findings`, or any post-edit step. Read-only MCP/CLI queries are always fine.
+- **Never run any index-mutating `codegraph` command inside a git worktree.** The `.codegraph/` index belongs to the main checkout only; worktree directories (sibling folders matching `<repo>-<branch-slug>`) must stay free of `.codegraph/`. If a worktree contains a `.codegraph/` folder from a past mistake, ignore it and do not refresh it; flag it to the user for cleanup.
+<!-- /feature:codegraph -->

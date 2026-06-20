@@ -1,0 +1,28 @@
+{
+  "_comment": "Documents the sanitization policy. build-kit.sh is the ENFORCER (it embeds the leak regex and exclude rules). Keep this file in sync with build-kit.sh when the policy changes.",
+  "hardExclude": {
+    "_why": "Never copied into the kit — machine-local, personal, or full-vault clones.",
+    "globs": [
+      ".claude/worktrees/**",
+      ".claudian/sessions/**",
+      ".smart-env/**",
+      ".ai-workflow/runs/**",
+      ".ai-workflow/worktrees/**",
+      "**/.DS_Store",
+      "02 Projects/* (every real project except the bundled Demo Project)",
+      "01 Inbox/**", "03 Wiki/**", "04 Resources/**", "05 Daily Notes/**",
+      "06 Archive/**", "07 Attachments/**", "09 Raw Data/**", "10 LLM Wiki/**",
+      "Excalidraw/**", "PR Comments/**",
+      "00 Context/About Me.md", "00 Context/ICP.md",
+      "00 Context/Offer.md", "00 Context/Branding.md", "00 Context/Specalists.md"
+    ]
+  },
+  "tokenScrub": {
+    "_why": "Residual personal tokens in otherwise-portable assets are mapped to scaffolder placeholders.",
+    "map": { "Sebbo": "{{DEV_NAME}}" }
+  },
+  "leakGuard": {
+    "_why": "After assembly, build-kit.sh fails the build if any of these survive anywhere in the staging tree. Bare 'atlassian.net' is intentionally NOT guarded — docs ship example org URLs; the real org is caught by 'fincompare'.",
+    "regex": "sebastianfitzner|Sebbo|fincompare|fynbiz|FC-MacBook|Axel Springer|SEBBO_SPACE"
+  }
+}

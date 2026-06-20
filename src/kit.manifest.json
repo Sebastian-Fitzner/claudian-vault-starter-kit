@@ -1,0 +1,19 @@
+{
+  "_comment": "Read by scaffold.mjs. Maps each optional feature to the skills that should be removed when the feature is turned off. CLAUDE.md/AGENTS.md sections are gated separately via <!-- feature:NAME --> markers in the template files.",
+  "placeholderKeys": [
+    "DEV_NAME",
+    "DEV_ROLE",
+    "DEV_EMAIL",
+    "DEV_STACK",
+    "DOMAIN_FOCUS",
+    "BUSINESS_LANGUAGE",
+    "ATLASSIAN_CLOUD_URL",
+    "DEV_GIT_AUTHOR"
+  ],
+  "features": {
+    "atlassian": { "skills": [] },
+    "github": { "skills": [] },
+    "codegraph": { "skills": ["code-graph-index"] },
+    "figma": { "skills": ["figma-bridge", "design-in-figma"] }
+  }
+}
