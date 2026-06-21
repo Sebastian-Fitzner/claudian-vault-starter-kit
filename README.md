@@ -1,51 +1,95 @@
-# starter-kit/ — Claudian Vault Starter Kit (build workspace)
+# Vault Starter Kit
 
-This folder builds a shareable, personalizable copy of this vault for other developers.
-**It is for you (the vault owner), not the end user.** The end user only ever sees the zip.
+Scaffold a personalized engineering vault for AI-assisted project work: skills, task workflows,
+project templates, personas, coding rules, and optional integrations.
 
-## Layout
+The core workflow is editor-agnostic. Use the generated folder from any editor or agent CLI.
+Obsidian is optional and documented separately.
 
-```
-starter-kit/
-├─ build-kit.sh          # YOU run this → assembles + scrubs + zips
-├─ scrub.manifest.json   # sanitization policy (build-kit.sh enforces it)
-├─ src/                  # hand-authored kit contents (the truth)
-│  ├─ scaffold.mjs       # the personalizer the END USER runs (Node, zero deps)
-│  ├─ kit.manifest.json  # feature → skill removal map
-│  ├─ INSTALL.md  WALKTHROUGH.md
-│  ├─ docs/              # plugins.md, mcp-setup.md, personalization.md
-│  └─ overlay/           # files laid over copied vault assets (templatized CLAUDE.md, stubs, Demo Project, dot-configs)
-└─ dist/                 # build output (git-ignored): staging/ + claudian-starter-kit.zip
-```
-
-## Build
+## Quickstart
 
 ```sh
-bash starter-kit/build-kit.sh
+npx @veams/vault-starter-kit
 ```
 
-Produces `dist/claudian-starter-kit.zip`. The build **fails loudly** if any personal token
-(`Sebbo`, `fincompare`, absolute paths, …) survives into the staging tree.
+The CLI asks for your name, role, email, stack, target directory, and optional integrations.
+It then writes a personalized vault to the target folder.
 
-## How it works
-
-- Portable assets (`skills/`, `08 Templates/`, most of `00 Context/`) are copied **from the live
-  vault at build time** — single-sourced, never duplicated here.
-- `src/overlay/` provides the parts that must differ from your live vault: a templatized
-  `CLAUDE.md.tmpl`, neutral profile stubs, the Demo Project, and clean dot-configs.
-- `build-kit.sh` merges the two, scrubs, guards, and zips.
-
-## Test the output
+Headless run with defaults:
 
 ```sh
-rm -rf /tmp/kit-test && unzip -q dist/claudian-starter-kit.zip -d /tmp/kit-test
-cd /tmp/kit-test && node scaffold.mjs --target ./out --defaults
+npx @veams/vault-starter-kit --target ./my-vault --defaults
 ```
 
-## Updating
+Headless run with explicit values:
 
-- New/changed **skill, template, persona** → just rebuild; it's pulled from the live vault.
-- New **personal token** to scrub → add it to the `LEAK_REGEX` and scrub pass in `build-kit.sh`
-  (and mirror in `scrub.manifest.json`).
-- New **placeholder / feature toggle** → edit `src/scaffold.mjs` + `src/kit.manifest.json` +
-  the `<!-- feature:NAME -->` markers in `src/overlay/CLAUDE.md.tmpl`.
+```sh
+npx @veams/vault-starter-kit --target ./my-vault \
+  --name 'Jane Dev' \
+  --role 'Staff Engineer' \
+  --email 'jane@example.com' \
+  --stack 'TypeScript, Node.js, Go, AWS' \
+  --focus 'developer tooling' \
+  --biz-lang 'English' \
+  --github \
+  --no-atlassian \
+  --no-codegraph \
+  --no-figma
+```
+
+## Requirements
+
+- Node.js 18+
+- git optional, used only when you keep the default first-commit step
+- Agent CLIs optional, depending on how you want to use the vault
+
+## CLI Options
+
+| Option | Purpose |
+| --- | --- |
+| `--target DIR` | Create the vault in `DIR` |
+| `--defaults`, `--yes` | Accept defaults without prompts |
+| `--name NAME` | Your name |
+| `--role ROLE` | Your role |
+| `--email EMAIL` | Git author email |
+| `--stack TEXT` | Stack or focus one-liner |
+| `--focus TEXT` | Current domain focus |
+| `--biz-lang LANG` | Business and strategy language |
+| `--atlassian`, `--no-atlassian` | Include or remove Atlassian instructions |
+| `--atlassian-url URL` | Atlassian cloud URL when Atlassian is enabled |
+| `--github`, `--no-github` | Include or remove GitHub setup defaults |
+| `--codegraph`, `--no-codegraph` | Include or remove codegraph skill/instructions |
+| `--figma`, `--no-figma` | Include or remove Figma skills |
+| `--git`, `--no-git` | Run or skip `git init` and the first commit |
+| `--help`, `-h` | Show CLI help |
+
+## After Scaffolding
+
+```sh
+cd ./my-vault
+```
+
+Start with these files:
+
+- `WALKTHROUGH.md` for the vault tour and task lifecycle.
+- `00 Context/About Me.md` for your profile.
+- `CLAUDE.md`, `AGENTS.md`, `CODEX.md`, and `GEMINI.md` for agent instructions.
+- `docs/mcp-setup.md` if you enabled MCP-backed integrations.
+
+Open the folder in your editor or run your preferred agent CLI from the vault root.
+
+## Optional Obsidian Setup
+
+Obsidian is useful for graph navigation, Dataview tables, and the Claudian in-vault panel, but it
+is not required for the workflow.
+
+1. Install Obsidian from [obsidian.md](https://obsidian.md).
+2. Open the generated folder as a vault.
+3. Install optional plugins from `docs/plugins.md`.
+
+## Package Contents
+
+The npm package vendors `src/template-vault/`, so `npx` works without access to the source vault.
+The publish pipeline runs a personal-data leak guard before publishing.
+
+Maintainer notes live in `MAINTAINERS.md`.

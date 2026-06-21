@@ -1,0 +1,29 @@
+{
+  "name": "@veams/vault-starter-kit",
+  "version": "0.1.0",
+  "description": "Scaffold a personalized, IDE-agnostic engineering vault for AI-assisted project work.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "vault-starter-kit": "src/scaffold.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "src/scaffold.mjs",
+    "src/kit.manifest.json",
+    "src/template-vault",
+    "src/docs",
+    "src/INSTALL.md",
+    "src/WALKTHROUGH.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "leak-guard": "node scripts/leak-guard.mjs src README.md package.json",
+    "refresh": "bash scripts/refresh-template.sh",
+    "prepublishOnly": "node scripts/leak-guard.mjs src README.md package.json"
+  }
+}
